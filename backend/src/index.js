@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js'
 import trackRoutes from './routes/track.routes.js'
-import analytivdcsRoutes from './routes/analytics.routes.js'
+import analyticsRoutes from './routes/analytics.routes.js'
 import cors from 'cors';
 
 dotenv.config();
@@ -17,6 +17,6 @@ app.use(cors({
 const PORT= process.env.PORT;
 app.use('/api', authRoutes);
 app.use('/api', trackRoutes);
-app.use('/api', analytivdcsRoutes);
+app.use('/api', analyticsRoutes);
 
 app.listen(PORT, () => console.log(`Server is live at PORT: ${PORT}`));
