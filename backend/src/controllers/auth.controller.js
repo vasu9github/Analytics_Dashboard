@@ -7,7 +7,13 @@ export const register = async (req, res) => {
   try {
     const { username, email, password, age, gender } = req.body;
 
-    if (!username || !email || !password || !age || !gender) {
+    const parsedAge = Number(age);
+
+    if (!parsedAge || isNaN(parsedAge)) {
+      return res.status(400).json({ message: "Valid age required" });
+    }
+    
+    if (!username || !email || !password || !parsedAge || !gender) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -30,7 +36,7 @@ export const register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
-        age,
+        age: parsedAge,
         gender
       }
     });

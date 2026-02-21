@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { apiRequest } from "../api";
+import { trackEvent } from "../api/track";
 
 import {
   BarChart,
@@ -12,8 +13,7 @@ import {
   LineChart,
   Line,
   Cell,
-  CartesianGrid,
-  Legend
+  CartesianGrid
 } from "recharts";
 
 const Dashboard = () => {
@@ -56,12 +56,20 @@ const Dashboard = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  const handleApply = async () => {
+    try {
+      await trackEvent("filter_apply"); 
+      fetchAnalytics();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
 
       <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-
         <div className="glass-card p-4 md:p-6 rounded-xl flex flex-col lg:flex-row lg:gap-4 lg:items-end lg:justify-between">
           <div className="mb-4 lg:mb-0 flex-1">
             <h3 className="text-lg md:text-xl font-semibold">Filters</h3>
@@ -73,66 +81,70 @@ const Dashboard = () => {
               type="date"
               name="startDate"
               onChange={handleChange}
-              className="form-input text-sm md:text-base"
+              className="form-input"
             />
 
             <input
               type="date"
               name="endDate"
               onChange={handleChange}
-              className="form-input text-sm md:text-base"
+              className="form-input"
             />
 
-            <select
-              name="age"
-              onChange={handleChange}
-              className="form-input text-sm md:text-base"
-            >
+            <select name="age" onChange={handleChange} className="form-input">
               <option value="">All Ages</option>
               <option value="18-25">18-25</option>
               <option value="26-35">26-35</option>
             </select>
 
-            <select
-              name="gender"
-              onChange={handleChange}
-              className="form-input text-sm md:text-base"
-            >
+            <select name="gender" onChange={handleChange} className="form-input">
               <option value="">All Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
 
-            <button
-              onClick={fetchAnalytics}
-              className="btn-primary text-sm md:text-base"
-            >
+            <button onClick={handleApply} className="btn-primary">
               Apply
             </button>
           </div>
         </div>
-
         {loading && (
           <div className="text-center text-muted">Loading data...</div>
         )}
-        {!loading && !data && (
-          <div className="text-center text-muted">No data available</div>
-        )}
-        {!loading && data && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
+        {!loading && data && data.featureUsage?.length === 0 && (
+          <div className="text-center text-muted">No data for selected filters</div>
+        )}
+
+        {!loading && data && data.featureUsage?.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <div className="glass-card p-4 md:p-6 rounded-xl">
-              <h2 className="font-semibold mb-3 md:mb-4 text-base md:text-lg">Feature Usage</h2>
+              <h2 className="font-semibold mb-4">Feature Usage</h2>
 
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={data.featureUsage} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                  <XAxis dataKey="feature" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.9)' }} />
-                  <Bar dataKey="count" radius={[8, 8, 0, 0]}>
-                    {data.featureUsage?.map((entry, index) => (
-                      <Cell key={`bar-${index}`} fill={['#5661ff', '#6b7cff', '#7b8fff', '#8b9fff', '#9bafff'][index % 5]} />
+                <BarChart data={data.featureUsage}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="feature" />
+                  <YAxis />
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="count"
+                    onClick={async (entry) => {
+                      if (!entry?.feature) return;
+
+                      await trackEvent(`bar_click:${entry.feature}`);
+                    }}
+                  >
+                    {data.featureUsage.map((_, index) => (
+                      <Cell
+                        key={index}
+                        fill={
+                          ["#5661ff", "#6b7cff", "#7b8fff", "#8b9fff", "#9bafff"][
+                            index % 5
+                          ]
+                        }
+                      />
                     ))}
                   </Bar>
                 </BarChart>
@@ -140,21 +152,24 @@ const Dashboard = () => {
             </div>
 
             <div className="glass-card p-4 md:p-6 rounded-xl">
-              <h2 className="font-semibold mb-3 md:mb-4 text-base md:text-lg">Time Trend</h2>
+              <h2 className="font-semibold mb-4">Time Trend</h2>
 
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={data.timeTrend} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.9)' }} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="#5661ff" 
-                    strokeWidth={3} 
-                    dot={{ fill: '#5661ff', r: 4 }} 
-                    activeDot={{ r: 6 }}
+                <LineChart data={data.timeTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#5661ff"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    onClick={async () => {
+                      await trackEvent("line_chart_click");
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>

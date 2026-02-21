@@ -2,10 +2,13 @@ import prisma from "../config/prisma.js";
 
 export const trackEvent = async (req, res) => {
   try {
-    const { feature_name } = req.body;
+    console.log("HEADERS:", req.headers);
+    console.log("RAW BODY:", req.body);
+
+    const feature_name = req.body?.feature_name;
     const userId = req.user?.userId;
 
-    if (!feature_name || typeof feature_name !== "string") {
+    if (!feature_name) {
       return res.status(400).json({ message: "Valid feature name required" });
     }
 
@@ -13,22 +16,22 @@ export const trackEvent = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized user" });
     }
 
-    const normalizedFeature = feature_name.trim().toLowerCase();
-
     const event = await prisma.featureClick.create({
       data: {
         user_id: userId,
-        feature_name: normalizedFeature
+        feature_name: feature_name
       }
     });
 
+    console.log("TRACKED:", feature_name, "USER:", userId);
+
     res.status(201).json({
-      message: "Event tracked successfully",
+      message: "Tracked",
       event
     });
 
   } catch (error) {
-    console.error("TRACK ERROR:", error.message);
+    console.log("TRACK ERROR:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
