@@ -58,7 +58,7 @@ const Dashboard = () => {
 
   const handleApply = async () => {
     try {
-      await trackEvent("filter_apply"); 
+      await trackEvent("filter_apply");
       fetchAnalytics();
     } catch (err) {
       console.log(err);
@@ -76,36 +76,48 @@ const Dashboard = () => {
             <p className="text-sm text-muted mt-1">Refine the analytics view</p>
           </div>
 
-          <div className="flex gap-2 md:gap-3 flex-wrap">
+          <div className="flex gap-2 md:gap-3 flex-wrap w-full lg:w-auto">
             <input
               type="date"
               name="startDate"
               onChange={handleChange}
-              className="form-input"
+              className="form-input w-full sm:w-auto min-w-[140px]"
             />
 
             <input
               type="date"
               name="endDate"
               onChange={handleChange}
-              className="form-input"
+              className="form-input w-full sm:w-auto min-w-[140px]"
             />
 
-            <select name="age" onChange={handleChange} className="form-input">
+            <select
+              name="age"
+              onChange={handleChange}
+              className="form-input w-full sm:w-auto min-w-[140px]"
+            >
               <option value="">All Ages</option>
               <option value="18-25">18-25</option>
               <option value="26-35">26-35</option>
             </select>
 
-            <select name="gender" onChange={handleChange} className="form-input">
+            <select
+              name="gender"
+              onChange={handleChange}
+              className="form-input w-full sm:w-auto min-w-[140px]"
+            >
               <option value="">All Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
 
-            <button onClick={handleApply} className="btn-primary">
+            <button
+              onClick={handleApply}
+              className="btn-primary w-full sm:w-auto"
+            >
               Apply
             </button>
+
           </div>
         </div>
         {loading && (
@@ -113,7 +125,9 @@ const Dashboard = () => {
         )}
 
         {!loading && data && data.featureUsage?.length === 0 && (
-          <div className="text-center text-muted">No data for selected filters</div>
+          <div className="text-center text-muted">
+            No data for selected filters
+          </div>
         )}
 
         {!loading && data && data.featureUsage?.length > 0 && (
@@ -132,7 +146,6 @@ const Dashboard = () => {
                     dataKey="count"
                     onClick={async (entry) => {
                       if (!entry?.feature) return;
-
                       await trackEvent(`bar_click:${entry.feature}`);
                     }}
                   >
@@ -150,7 +163,6 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-
             <div className="glass-card p-4 md:p-6 rounded-xl">
               <h2 className="font-semibold mb-4">Time Trend</h2>
 
