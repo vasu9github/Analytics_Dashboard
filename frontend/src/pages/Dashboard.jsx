@@ -30,7 +30,6 @@ const Dashboard = () => {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-
       const query = new URLSearchParams(filters).toString();
 
       const res = await apiRequest(`/analytics?${query}`, {
@@ -77,19 +76,30 @@ const Dashboard = () => {
           </div>
 
           <div className="flex gap-2 md:gap-3 flex-wrap w-full lg:w-auto">
-            <input
-              type="date"
-              name="startDate"
-              onChange={handleChange}
-              className="form-input w-full sm:w-auto min-w-[140px]"
-            />
 
-            <input
-              type="date"
-              name="endDate"
-              onChange={handleChange}
-              className="form-input w-full sm:w-auto min-w-[140px]"
-            />
+            <div className="relative w-full sm:w-auto min-w-[140px]">
+              <input
+                type="date"
+                name="startDate"
+                onChange={handleChange}
+                className="form-input w-full pr-10 appearance-none"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                📅
+              </span>
+            </div>
+
+            <div className="relative w-full sm:w-auto min-w-[140px]">
+              <input
+                type="date"
+                name="endDate"
+                onChange={handleChange}
+                className="form-input w-full pr-10 appearance-none"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                📅
+              </span>
+            </div>
 
             <select
               name="age"
@@ -117,9 +127,9 @@ const Dashboard = () => {
             >
               Apply
             </button>
-
           </div>
         </div>
+
         {loading && (
           <div className="text-center text-muted">Loading data...</div>
         )}
@@ -132,6 +142,7 @@ const Dashboard = () => {
 
         {!loading && data && data.featureUsage?.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+
             <div className="glass-card p-4 md:p-6 rounded-xl">
               <h2 className="font-semibold mb-4">Feature Usage</h2>
 
@@ -163,6 +174,7 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+
             <div className="glass-card p-4 md:p-6 rounded-xl">
               <h2 className="font-semibold mb-4">Time Trend</h2>
 
